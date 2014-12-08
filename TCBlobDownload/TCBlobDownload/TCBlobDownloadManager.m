@@ -48,10 +48,22 @@
                               customPath:(NSString *)customPathOrNil
                                 delegate:(id<TCBlobDownloaderDelegate>)delegateOrNil
 {
+    return [self startDownloadWithURL:url
+                           customPath:customPathOrNil
+                          HTTPHeaders:nil
+                             delegate:delegateOrNil];
+}
+
+- (TCBlobDownloader *)startDownloadWithURL:(NSURL *)url
+                                customPath:(NSString *)customPathOrNil
+                               HTTPHeaders:(NSDictionary *)headers
+                                  delegate:(id<TCBlobDownloaderDelegate>)delegateOrNil
+{
     NSString *downloadPath = customPathOrNil ? customPathOrNil : self.defaultDownloadPath;
     
     TCBlobDownloader *downloader = [[TCBlobDownloader alloc] initWithURL:url
                                                             downloadPath:downloadPath
+                                                             HTTPHeaders:headers
                                                                 delegate:delegateOrNil];
     [self.operationQueue addOperation:downloader];
     
@@ -65,10 +77,28 @@
                                    error:(void (^)(NSError *error))errorBlock
                                 complete:(void (^)(BOOL downloadFinished, NSString *pathToFile))completeBlock
 {
+    return [self startDownloadWithURL:url
+                           customPath:customPathOrNil
+                          HTTPHeaders:nil
+                        firstResponse:firstResponseBlock
+                             progress:progressBlock
+                                error:errorBlock
+                             complete:completeBlock];
+}
+
+- (TCBlobDownloader *)startDownloadWithURL:(NSURL *)url
+                                customPath:(NSString *)customPathOrNil
+                               HTTPHeaders:(NSDictionary *)headers
+                             firstResponse:(void (^)(NSURLResponse *response))firstResponseBlock
+                                  progress:(void (^)(uint64_t receivedLength, uint64_t totalLength, NSInteger remainingTime, float progress))progressBlock
+                                     error:(void (^)(NSError *error))errorBlock
+                                  complete:(void (^)(BOOL downloadFinished, NSString *pathToFile))completeBlock
+{
     NSString *downloadPath = customPathOrNil ? customPathOrNil : self.defaultDownloadPath;
     
     TCBlobDownloader *downloader = [[TCBlobDownloader alloc] initWithURL:url
                                                             downloadPath:downloadPath
+                                                             HTTPHeaders:headers
                                                            firstResponse:firstResponseBlock
                                                                 progress:progressBlock
                                                                    error:errorBlock

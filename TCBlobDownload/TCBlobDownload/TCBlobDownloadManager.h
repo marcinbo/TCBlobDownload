@@ -66,6 +66,25 @@
                                   delegate:(id<TCBlobDownloaderDelegate>)delegateOrNil;
 
 /**
+ Instanciates and runs instantly a `TCBlobDownloadObject` with the specified URL, an optional customPath, an optional HTTPheaders and an optional delegate. Runs in background thread the `TCBlobDownloader` object (a subclass of `NSOperation`) in the `TCBlobDownloadManager` instance.
+ 
+ This method returns the created `TCBlobDownloader` object for further use.
+ 
+ @see -startDownloadWithURL:customPath:delegate
+ 
+ @param url  The URL of the file to download.
+ @param customPathOrNil  An optional path to override the default download path of the `TCBlobDownloadManager` instance. Can be `nil`.
+ @param headers  An optional delegate. Can be `nil`.
+ @param delegateOrNil  An optional delegate. Can be `nil`.
+ 
+ @return The created and already running `TCBlobDownloadObject`.
+ */
+- (TCBlobDownloader *)startDownloadWithURL:(NSURL *)url
+                                customPath:(NSString *)customPathOrNil
+                               HTTPHeaders:(NSDictionary *)headers
+                                  delegate:(id<TCBlobDownloaderDelegate>)delegateOrNil;
+
+/**
  Instanciates and runs instantly a `TCBlobDownloader` object. Provides the same functionnalities than `-startDownloadWithURL:customPath:delegate:` but creates a `TCBlobDownloadObject` using blocks to update your view.
  
  @see -startDownloadWithURL:customPath:delegate:
@@ -88,6 +107,29 @@
                                 progress:(void (^)(uint64_t receivedLength, uint64_t totalLength, NSInteger remainingTime, float progress))progressBlock
                                    error:(void (^)(NSError *error))errorBlock
                                 complete:(void (^)(BOOL downloadFinished, NSString *pathToFile))completeBlock;
+
+/**
+ Instanciates and runs instantly a `TCBlobDownloader` object. Provides the same functionnalities than `-startDownloadWithURL:customPath:HTTPHeaders:delegate:` but creates a `TCBlobDownloadObject` using blocks to update your view.
+ 
+ @see -startDownloadWithURL:customPath:delegate:
+ 
+ This method returns the created `TCBlobDownloader` object for further use.
+ 
+ @see -startDownloadWithURL:customPath:firstResponse:progress:error:complete:
+ 
+ @param url  The URL of the file to download.
+ @param customPathOrNil  An optional path to override the default download path of the `TCBlobDownloadManager` instance. Can be `nil`.
+ @param firstResponseBlock  This block is called when receiving the first response from the server. Can be `nil`.
+ @param progressBlock  This block is called on each response from the server while the download is occurring. Can be `nil`. If the remaining time has not been calculated yet, the value is `-1`. @param errorBlock  Called when an error occur during the download. If this block is called, the download will be cancelled just after. Can be `nil`.
+ @param completeBlock  Called when the download is completed or cancelled. Can be `nil`. If the download has been cancelled with the paramater `removeFile` set to `YES`, then the `pathToFile` parameter is `nil`. The `TCBlobDownloader` operation will be removed from `TCBlobDownloadManager` just after this block is called.
+ */
+- (TCBlobDownloader *)startDownloadWithURL:(NSURL *)url
+                                customPath:(NSString *)customPathOrNil
+                               HTTPHeaders:(NSDictionary *)headers
+                             firstResponse:(void (^)(NSURLResponse *response))firstResponseBlock
+                                  progress:(void (^)(uint64_t receivedLength, uint64_t totalLength, NSInteger remainingTime, float progress))progressBlock
+                                     error:(void (^)(NSError *error))errorBlock
+                                  complete:(void (^)(BOOL downloadFinished, NSString *pathToFile))completeBlock;
 
 /**
  Starts an already instanciated `TCBlobDownloader` object.

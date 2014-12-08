@@ -170,6 +170,21 @@ typedef NS_ENUM(NSUInteger, TCBlobDownloadState) {
                    delegate:(id<TCBlobDownloaderDelegate>)delegateOrNil;
 
 /**
+ Instanciates a `TCBlobDownloader` object with delegate. `TCBlobDownloader` objects instanciated this way will not be executed until they are passed to the `TCBlobDownloaderManager` singleton.
+ 
+ @see initWithURL:downloadPath:delegate:
+ 
+ @param url  The URL from where to download the file.
+ @param pathToDLOrNil  An optional path to override the default download path of the `TCBlobDownloaderManager` instance. Can be `nil`.
+ @param delegateOrNil  An optional delegate. Can be `nil`.
+ @return The newly created `TCBlobDownloader`.
+ */
+- (instancetype)initWithURL:(NSURL *)url
+               downloadPath:(NSString *)pathToDLOrNil
+                HTTPHeaders:(NSDictionary *)headers
+                   delegate:(id<TCBlobDownloaderDelegate>)delegateOrNil;
+
+/**
  Instanciates a `TCBlobDownloader` object with response blocks. `TCBlobDownloader` objects instanciated this way will not be executed until they are passed to the `TCBlobDownloaderManager` singleton.
  
  @see startDownload:
@@ -186,6 +201,27 @@ typedef NS_ENUM(NSUInteger, TCBlobDownloadState) {
  */
 - (instancetype)initWithURL:(NSURL *)url
                downloadPath:(NSString *)pathToDL
+              firstResponse:(void (^)(NSURLResponse *response))firstResponseBlock
+                   progress:(void (^)(uint64_t receivedLength, uint64_t totalLength, NSInteger remainingTime, float progress))progressBlock
+                      error:(void (^)(NSError *error))errorBlock
+                   complete:(void (^)(BOOL downloadFinished, NSString *pathToFile))completeBlock;
+
+/**
+ Instanciates a `TCBlobDownloader` object with response blocks. `TCBlobDownloader` objects instanciated this way will not be executed until they are passed to the `TCBlobDownloaderManager` singleton.
+ 
+ @see initWithURL:downloadPath:firstResponse:progress:error:complete:
+ 
+ @param url  The URL of the file to download.
+ @param customPathOrNil  An optional path to override the default download path of the `TCBlobDownloaderManager` instance. Can be `nil`.
+ @param firstResponseBlock  This block is called when receiving the first response from the server. Can be `nil`.
+ @param progressBlock  This block is called on each response from the server while the download is occurring. Can be `nil`. If the remaining time has not been calculated yet, the value is `-1`.
+ @param errorBlock  Called when an error occur during the download. If this block is called, the download will be cancelled just after. Can be `nil`.
+ @param completeBlock  Called when the download is completed or cancelled. Can be `nil`. If the download has been cancelled with the paramater `removeFile` set to `YES`, then the `pathToFile` parameter is `nil`. The `TCBlobDownloader` operation will be removed from `TCBlobDownloadManager` just after this block is called.
+ @return The newly created `TCBlobDownloader`.
+ */
+- (instancetype)initWithURL:(NSURL *)url
+               downloadPath:(NSString *)pathToDL
+                HTTPHeaders:(NSDictionary *)headers
               firstResponse:(void (^)(NSURLResponse *response))firstResponseBlock
                    progress:(void (^)(uint64_t receivedLength, uint64_t totalLength, NSInteger remainingTime, float progress))progressBlock
                       error:(void (^)(NSError *error))errorBlock

@@ -19,6 +19,7 @@ NSString * const TCHTTPStatusCode = @"httpStatus";
 @interface TCBlobDownloader ()
 // Public
 @property (nonatomic, copy, readwrite) NSURL *downloadURL;
+@property (nonatomic, copy, readwrite) NSDictionary *HTTPHeaders;
 @property (nonatomic, copy, readwrite) NSString *pathToFile;
 @property (nonatomic, assign, readwrite) TCBlobDownloadState state;
 // Download
@@ -66,12 +67,25 @@ NSString * const TCHTTPStatusCode = @"httpStatus";
                downloadPath:(NSString *)pathToDL
                    delegate:(id<TCBlobDownloaderDelegate>)delegateOrNil
 {
+    return [self initWithURL:url
+               downloadPath:pathToDL
+                HTTPHeaders:nil
+                   delegate:delegateOrNil];
+}
+
+- (instancetype)initWithURL:(NSURL *)url
+               downloadPath:(NSString *)pathToDLOrNil
+                HTTPHeaders:(NSDictionary *)headers
+                   delegate:(id<TCBlobDownloaderDelegate>)delegateOrNil
+
+{
     self = [super init];
     if (self) {
         self.downloadURL = url;
         self.delegate = delegateOrNil;
-        self.pathToDownloadDirectory = pathToDL;
+        self.pathToDownloadDirectory = pathToDLOrNil;
         self.state = TCBlobDownloadStateReady;
+        self.HTTPHeaders = headers;
     }
     return self;
 }
@@ -83,7 +97,24 @@ NSString * const TCHTTPStatusCode = @"httpStatus";
                       error:(void (^)(NSError *error))errorBlock
                    complete:(void (^)(BOOL downloadFinished, NSString *pathToFile))completeBlock
 {
-    self = [self initWithURL:url downloadPath:pathToDL delegate:nil];
+    return [self initWithURL:url
+                downloadPath:pathToDL
+                 HTTPHeaders:nil
+               firstResponse:firstResponseBlock
+                    progress:progressBlock
+                       error:errorBlock
+                    complete:completeBlock];
+}
+
+- (instancetype)initWithURL:(NSURL *)url
+               downloadPath:(NSString *)pathToDL
+                HTTPHeaders:(NSDictionary *)headers
+              firstResponse:(void (^)(NSURLResponse *response))firstResponseBlock
+                   progress:(void (^)(uint64_t receivedLength, uint64_t totalLength, NSInteger remainingTime, float progress))progressBlock
+                      error:(void (^)(NSError *error))errorBlock
+                   complete:(void (^)(BOOL downloadFinished, NSString *pathToFile))completeBlock
+{
+    self = [self initWithURL:url downloadPath:pathToDL HTTPHeaders:headers delegate:nil];
     if (self) {
         self.firstResponseBlock = firstResponseBlock;
         self.progressBlock = progressBlock;
@@ -93,7 +124,6 @@ NSString * const TCHTTPStatusCode = @"httpStatus";
     return self;
 }
 
-
 #pragma mark - NSOperation Override
 
 
@@ -102,6 +132,12 @@ NSString * const TCHTTPStatusCode = @"httpStatus";
     NSMutableURLRequest *fileRequest = [NSMutableURLRequest requestWithURL:self.downloadURL
                                                                cachePolicy:NSURLRequestUseProtocolCachePolicy
                                                            timeoutInterval:kDefaultRequestTimeout];
+    
+    if ([self.HTTPHeaders count] > 0) {
+        for (NSString *key in self.HTTPHeaders) {
+            [fileRequest addValue:self.HTTPHeaders[key] forHTTPHeaderField:key];
+        }
+    }
     
     // If we can't handle the request, better cancelling the operation right now
     if (![NSURLConnection canHandleRequest:fileRequest]) {
