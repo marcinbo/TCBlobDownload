@@ -30,6 +30,7 @@ NSString * const TCHTTPStatusCode = @"httpStatus";
 // Speed rate and remaining time
 @property (nonatomic, strong) NSTimer *speedTimer;
 @property (nonatomic, strong) NSMutableArray *samplesOfDownloadedBytes;
+@property (nonatomic, assign, readwrite) uint64_t initialDataLength;
 @property (nonatomic, assign) uint64_t expectedDataLength;
 @property (nonatomic, assign) uint64_t receivedDataLength;
 @property (nonatomic, assign) uint64_t previousTotal;
@@ -153,6 +154,7 @@ NSString * const TCHTTPStatusCode = @"httpStatus";
     }
     
     // Test if file already exists (partly downloaded) to set HTTP `bytes` header or not
+    self.initialDataLength = 0;
     NSFileManager *fm = [NSFileManager defaultManager];
 
     if (![fm fileExistsAtPath:self.pathToFile]) {
@@ -164,6 +166,7 @@ NSString * const TCHTTPStatusCode = @"httpStatus";
         uint64_t fileSize = [[fm attributesOfItemAtPath:self.pathToFile error:nil] fileSize];
         NSString *range = [NSString stringWithFormat:@"bytes=%lld-", fileSize];
         [fileRequest setValue:range forHTTPHeaderField:@"Range"];
+        self.initialDataLength = fileSize;
     }
     
     // Initialization of everything we'll need to download the file

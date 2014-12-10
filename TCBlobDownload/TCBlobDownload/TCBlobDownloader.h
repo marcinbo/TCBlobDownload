@@ -126,6 +126,11 @@ typedef NS_ENUM(NSUInteger, TCBlobDownloadState) {
 @property (nonatomic, copy, getter = fileName) NSString *fileName;
 
 /**
+ The initial length of the partly downloaded file
+ */
+@property (nonatomic, assign, readonly) uint64_t initialDataLength;
+
+/**
  The current speed of the download in bits/sec. This property updates itself regularly so you can retrieve it on a regular interval to update your UI.
  
  @since 1.5.0
